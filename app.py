@@ -131,12 +131,14 @@ def update_map(province, clickData):
             'totalfemale': True,
             'totalstd': True
         },
-        projection='natural earth',
+        projection='mercator',
         title=f"จำนวนนักศึกษาที่จบการศึกษาปี 2566 ใน {province}"
     )
     fig.update_layout(
         geo=dict(
             scope='asia',
+            projection_scale=10, 
+            center=dict(lat=15.8700, lon=100.9925),  
             resolution=50,
             showland=True,
             landcolor='rgb(217, 217, 217)',
