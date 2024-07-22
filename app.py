@@ -5,10 +5,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# Load the data
 df = pd.read_json('C:/Users/kungs/Dashboard/Dashboard03/pp3-4_2566_province.json')
 
-# Mock latitude and longitude data for all provinces
 province_coordinates = {
     'กรุงเทพมหานคร': {'latitude': 13.7563, 'longitude': 100.5018},
     'กระบี่': {'latitude': 8.0863, 'longitude': 98.9063},
@@ -89,30 +87,25 @@ province_coordinates = {
     'อำนาจเจริญ': {'latitude': 15.8572, 'longitude': 104.6258}
 }
 
-# Add latitude and longitude columns to the DataFrame
 df['latitude'] = df['schools_province'].map(lambda x: province_coordinates[x]['latitude'] if x in province_coordinates else None)
 df['longitude'] = df['schools_province'].map(lambda x: province_coordinates[x]['longitude'] if x in province_coordinates else None)
 
-# Initialize the Dash app
 app = dash.Dash(__name__)
 
-# Create a list of provinces
 provinces = df['schools_province'].unique()
 
-# Create the layout of the app with dropdown
 app.layout = html.Div([
-    html.H1("Student Graduates by Province in 2566"),
+    html.H1("นักเรียนที่เรียนจบปีการศึกษา 2566"),
     dcc.Dropdown(
         id='province-dropdown',
         options=[{'label': province, 'value': province} for province in provinces],
-        value='กรุงเทพมหานคร',  # Default value
+        value='กรุงเทพมหานคร',  
         clearable=False
     ),
     dcc.Graph(id='map-graph'),
     dcc.Graph(id='bar-graph')
 ])
 
-# Create the map figure
 @app.callback(
     [Output('map-graph', 'figure'),
      Output('province-dropdown', 'value')],
@@ -120,11 +113,9 @@ app.layout = html.Div([
      Input('map-graph', 'clickData')]
 )
 def update_map(province, clickData):
-    # If a point is clicked, update the province based on clickData
     if clickData is not None:
         province = clickData['points'][0]['hovertext']
 
-    # Filter the DataFrame for the selected province
     filtered_df = df[df['schools_province'] == province]
 
     fig = px.scatter_geo(
@@ -141,7 +132,7 @@ def update_map(province, clickData):
             'totalstd': True
         },
         projection='natural earth',
-        title=f"Number of Male and Female Students Graduated in 2566 in {province}"
+        title=f"จำนวนนักศึกษาที่จบการศึกษาปี 2566 ใน {province}"
     )
     fig.update_layout(
         geo=dict(
@@ -155,7 +146,6 @@ def update_map(province, clickData):
     )
     return fig, province
 
-# Create the bar chart figure
 @app.callback(
     Output('bar-graph', 'figure'),
     [Input('province-dropdown', 'value')]
@@ -164,18 +154,17 @@ def update_bar_chart(province):
     filtered_df = df[df['schools_province'] == province]
 
     fig = go.Figure(data=[
-        go.Bar(name='Total Students', x=filtered_df['schools_province'], y=filtered_df['totalstd']),
-        go.Bar(name='Male Students', x=filtered_df['schools_province'], y=filtered_df['totalmale']),
-        go.Bar(name='Female Students', x=filtered_df['schools_province'], y=filtered_df['totalfemale'])
+        go.Bar(name='นักเรียนทั้งหมด', x=filtered_df['schools_province'], y=filtered_df['totalstd']),
+        go.Bar(name='นักเรียนชาย', x=filtered_df['schools_province'], y=filtered_df['totalmale']),
+        go.Bar(name='นักเรียนหญิง', x=filtered_df['schools_province'], y=filtered_df['totalfemale'])
     ])
     fig.update_layout(
-        barmode='group',  # Set the barmode to group to place bars side by side
-        title=f"Number of Students Graduated in 2566 in {province}",
-        xaxis_title="Province",
-        yaxis_title="Number of Students"
+        barmode='group',  
+        title=f"จำนวนนักศึกษาที่จบปี 2566 ใน {province}",
+        xaxis_title="จังหวัด",
+        yaxis_title="จำนวนนักเรียน"
     )
     return fig
 
-# Run the app
 if __name__ == '__main__':
     app.run_server(debug=True)
